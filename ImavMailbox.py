@@ -2,6 +2,7 @@ import libjevois as jevois
 import numpy as np
 import cv2
 import cv2 as cv
+from DetectMailbox import MailboxDetector
 
 MARK_RED = 1
 MARK_BLUE = 2
@@ -14,12 +15,16 @@ class ImavMailbox:
         self.alt = 0 # in mm from AP
 
         # initial color thresholds
-        self.red_th = None # set to None for splitted red
-        self.red1_th = (np.array([163, 173, 0]), np.array([179, 255, 255]))
-        self.red2_th = (np.array([0, 173, 0]), np.array([9, 255, 255]))
-        self.blue_th = (np.array([109, 176, 0]), np.array([145, 241, 255]))
-        self.yellow_th = (np.array([21, 195, 0]), np.array([45, 255, 255]))
-        self.orange_th = (np.array([141, 61, 0]), np.array([163, 76, 255]))
+        #self.red_th = None # set to None for splitted red
+        #self.red1_th = (np.array([163, 173, 0]), np.array([179, 255, 255]))
+        #self.red2_th = (np.array([0, 173, 0]), np.array([9, 255, 255]))
+        #self.blue_th = (np.array([109, 176, 0]), np.array([145, 241, 255]))
+        #self.yellow_th = (np.array([21, 195, 0]), np.array([45, 255, 255]))
+        #self.orange_th = (np.array([141, 61, 0]), np.array([163, 76, 255]))
+        self.mailbox_red = MailboxDetector([[[0, 173, 0],[9, 255, 255]],[[163, 173, 0],[179, 255, 255]]])
+        self.mailbox_blue = MailboxDetector([[[109, 176, 0],[145, 241, 255]]])
+        self.mailbox_yellow = MailboxDetector([[[21, 195, 0],[45, 255, 255]]])
+        self.mailbox_orange = MailboxDetector([[[141, 61, 0],[163, 76, 255]]])
 
         # Define square approximation parameters
         self.width_height_ratio = 0.6
@@ -51,39 +56,43 @@ class ImavMailbox:
             jevois.LINFO(self.save)
             self.save = None
 
-        blur = cv2.GaussianBlur(img,(5,5),0)
-        hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
+        #blur = cv2.GaussianBlur(img,(5,5),0)
+        #hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
 
         detect = {} # dict of detected objects
 
         # red
-        mask_red = None
-        if self.red_th is not None:
-            mask_red = cv2.inRange(hsv, self.red_th[0], self.red_th[1])
-        else:
-            mask_red = cv2.inRange(hsv, self.red1_th[0], self.red1_th[1]) + cv2.inRange(hsv, self.red2_th[0], self.red2_th[1])
-        ret = self.apply_filters(hsv, mask_red)
+        #mask_red = None
+        #if self.red_th is not None:
+        #    mask_red = cv2.inRange(hsv, self.red_th[0], self.red_th[1])
+        #else:
+        #    mask_red = cv2.inRange(hsv, self.red1_th[0], self.red1_th[1]) + cv2.inRange(hsv, self.red2_th[0], self.red2_th[1])
+        #ret = self.apply_filters(hsv, mask_red)
+        ret = self.mailbox_red(img)
         if ret is not None:
             detect[MARK_RED] = ret
             self.send_message(MARK_RED, ret)
 
         # blue
-        mask_blue = cv2.inRange(hsv, self.blue_th[0], self.blue_th[1])
-        ret = self.apply_filters(hsv, mask_blue)
+        #mask_blue = cv2.inRange(hsv, self.blue_th[0], self.blue_th[1])
+        #ret = self.apply_filters(hsv, mask_blue)
+        ret = self.mailbox_blue.detect(img)
         if ret is not None:
             detect[MARK_BLUE] = ret
             self.send_message(MARK_BLUE, ret)
 
         # yellow
-        mask_yellow = cv2.inRange(hsv, self.yellow_th[0], self.yellow_th[1])
-        ret = self.apply_filters(hsv, mask_yellow)
+        #mask_yellow = cv2.inRange(hsv, self.yellow_th[0], self.yellow_th[1])
+        #ret = self.apply_filters(hsv, mask_yellow)
+        ret = self.mailbox_yellow(img)
         if ret is not None:
             detect[MARK_YELLOW] = ret
             self.send_message(MARK_YELLOW, ret)
 
         # orange (assuming only one in image)
-        mask_orange = cv2.inRange(hsv, self.orange_th[0], self.orange_th[1])
-        ret = self.apply_filters(hsv, mask_orange)
+        #mask_orange = cv2.inRange(hsv, self.orange_th[0], self.orange_th[1])
+        #ret = self.apply_filters(hsv, mask_orange)
+        ret = self.mailbox_orange(img)
         if ret is not None:
             detect[MARK_ORANGE] = ret
             self.send_message(MARK_ORANGE, ret)

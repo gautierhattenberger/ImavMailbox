@@ -24,9 +24,9 @@ class MailboxDetector:
                 mask += cv2.inRange(hsv, hsv_min, hsv_max)
 
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel) # opening
-        cv2.imshow('mask',mask)
+        #cv2.imshow('mask',mask)
         cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-        self.draw_all(img.copy(),cnts)
+        #self.draw_all(img.copy(),cnts)
         best_res = None
         best_score = 0.
         #print("size", len(cnts))
@@ -70,4 +70,4 @@ class MailboxDetector:
             box = cv2.boxPoints(cv2.minAreaRect(cnt))
             ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
             cv2.drawContours(img, [ctr], -1, (0, 255, 0), 4)
-        cv2.imshow('contour',img)
+        #cv2.imshow('contour',img)
