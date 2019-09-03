@@ -14,11 +14,11 @@ class ImavMailbox:
         self.alt = 0 # in mm from AP
 
         # initial color thresholds
-        self.red_th = (np.array([141, 76, 0]), np.array([163, 103, 255])) # set to None for splitted red
-        self.red1_th = (np.array([163, 19, 0]), np.array([179, 255, 255]))
-        self.red2_th = (np.array([0, 50, 0]), np.array([18, 255, 255]))
-        self.blue_th = (np.array([100, 138, 0]), np.array([130, 180, 255]))
-        self.yellow_th = (np.array([45, 7, 0]), np.array([95, 40, 255]))
+        self.red_th = None # set to None for splitted red
+        self.red1_th = (np.array([163, 173, 0]), np.array([179, 255, 255]))
+        self.red2_th = (np.array([0, 173, 0]), np.array([9, 255, 255]))
+        self.blue_th = (np.array([109, 176, 0]), np.array([145, 241, 255]))
+        self.yellow_th = (np.array([21, 195, 0]), np.array([45, 255, 255]))
         self.orange_th = (np.array([141, 61, 0]), np.array([163, 76, 255]))
 
         # Define square approximation parameters
@@ -101,10 +101,11 @@ class ImavMailbox:
             cnt = max(cnts, key=cv2.contourArea)
             rect = cv2.minAreaRect(cnt)
             _, (w, h), _ = rect
-            return rect
+            #return rect
             similarity = min(w, h) / max(w, h)
             area_percentage = cv2.contourArea(cnt) / (w * h)
-            if 350 > max(w, h) and min(w, h) > 30 and similarity > self.width_height_ratio and area_percentage > self.area_occupancy_ratio:
+            jevois.LINFO("{} {} {} {}".format(w, h, similarity, area_percentage))
+            if 350 > max(w, h) and min(w, h) > 10 and similarity > self.width_height_ratio and area_percentage > self.area_occupancy_ratio:
                 return rect
             else:
                 return None
