@@ -15,12 +15,6 @@ class ImavMailbox:
         self.alt = 0 # in mm from AP
 
         # initial color thresholds
-        #self.red_th = None # set to None for splitted red
-        #self.red1_th = (np.array([163, 173, 0]), np.array([179, 255, 255]))
-        #self.red2_th = (np.array([0, 173, 0]), np.array([9, 255, 255]))
-        #self.blue_th = (np.array([109, 176, 0]), np.array([145, 241, 255]))
-        #self.yellow_th = (np.array([21, 195, 0]), np.array([45, 255, 255]))
-        #self.orange_th = (np.array([141, 61, 0]), np.array([163, 76, 255]))
         self.mailbox_red = MailboxDetector([[[0, 173, 0],[9, 255, 255]],[[163, 173, 0],[179, 255, 255]]])
         self.mailbox_blue = MailboxDetector([[[109, 176, 0],[145, 241, 255]]])
         self.mailbox_yellow = MailboxDetector([[[21, 195, 0],[45, 255, 255]]])
@@ -56,68 +50,33 @@ class ImavMailbox:
             jevois.LINFO(self.save)
             self.save = None
 
-        #blur = cv2.GaussianBlur(img,(5,5),0)
-        #hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
-
         detect = {} # dict of detected objects
 
         # red
-        #mask_red = None
-        #if self.red_th is not None:
-        #    mask_red = cv2.inRange(hsv, self.red_th[0], self.red_th[1])
-        #else:
-        #    mask_red = cv2.inRange(hsv, self.red1_th[0], self.red1_th[1]) + cv2.inRange(hsv, self.red2_th[0], self.red2_th[1])
-        #ret = self.apply_filters(hsv, mask_red)
-        ret = self.mailbox_red(img)
+        ret = self.mailbox_red.detect(img)
         if ret is not None:
             detect[MARK_RED] = ret
             self.send_message(MARK_RED, ret)
 
         # blue
-        #mask_blue = cv2.inRange(hsv, self.blue_th[0], self.blue_th[1])
-        #ret = self.apply_filters(hsv, mask_blue)
         ret = self.mailbox_blue.detect(img)
         if ret is not None:
             detect[MARK_BLUE] = ret
             self.send_message(MARK_BLUE, ret)
 
         # yellow
-        #mask_yellow = cv2.inRange(hsv, self.yellow_th[0], self.yellow_th[1])
-        #ret = self.apply_filters(hsv, mask_yellow)
-        ret = self.mailbox_yellow(img)
+        ret = self.mailbox_yellow.detect(img)
         if ret is not None:
             detect[MARK_YELLOW] = ret
             self.send_message(MARK_YELLOW, ret)
 
         # orange (assuming only one in image)
-        #mask_orange = cv2.inRange(hsv, self.orange_th[0], self.orange_th[1])
-        #ret = self.apply_filters(hsv, mask_orange)
-        ret = self.mailbox_orange(img)
+        ret = self.mailbox_orange.detect(img)
         if ret is not None:
             detect[MARK_ORANGE] = ret
             self.send_message(MARK_ORANGE, ret)
 
         return detect
-
-    def apply_filters(self, hsv, mask):
-        '''
-        apply filters for detection of a particular color
-        '''
-        kernel = np.ones((5,5),np.uint8) # create convolution
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel) # opening
-        cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-        if len(cnts) > 0:
-            cnt = max(cnts, key=cv2.contourArea)
-            rect = cv2.minAreaRect(cnt)
-            _, (w, h), _ = rect
-            #return rect
-            similarity = min(w, h) / max(w, h)
-            area_percentage = cv2.contourArea(cnt) / (w * h)
-            jevois.LINFO("{} {} {} {}".format(w, h, similarity, area_percentage))
-            if 350 > max(w, h) and min(w, h) > 10 and similarity > self.width_height_ratio and area_percentage > self.area_occupancy_ratio:
-                return rect
-            else:
-                return None
 
     def send_message(self, mark, pos):
         '''

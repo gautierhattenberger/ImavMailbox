@@ -29,7 +29,6 @@ class MailboxDetector:
         #self.draw_all(img.copy(),cnts)
         best_res = None
         best_score = 0.
-        #print("size", len(cnts))
         for cnt in cnts:
             rect = cv2.minAreaRect(cnt)
             _, (w, h), _ = rect
@@ -52,18 +51,6 @@ class MailboxDetector:
                 best_score = score
                 best_res = rect
         return best_res
-
-        #if len(cnts) > 0:
-        #    cnt = max(cnts, key=cv2.contourArea)
-        #    rect = cv2.minAreaRect(cnt)
-        #    _, (w, h), _ = rect
-        #    similarity = min(w, h) / max(w, h)
-        #    area = cv2.contourArea(cnt) / (w * h)
-        #    print(similarity, area)
-        #    if max(w, h) < self.size_th[1] and min(w, h) > self.size_th[0] and similarity > self.aspect_ratio_th and area > self.area_th:
-        #        return rect
-        #    else:
-        #        return None
 
     def draw_all(self, img, cnts):
         for cnt in cnts:
