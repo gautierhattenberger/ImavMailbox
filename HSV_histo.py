@@ -8,6 +8,13 @@ import cv2
 import cv2 as cv
 import numpy as np
 #from matplotlib import pyplot as plt
+import sys
+
+if len(sys.argv) != 2:
+    print("Missing file input")
+    sys.exit(1)
+
+file_name = sys.argv[1]
 
 hsv_map = np.zeros((180, 256, 3), np.uint8)
 h, s = np.indices(hsv_map.shape[:2])
@@ -84,7 +91,7 @@ cv2.createTrackbar('s_min', 'hist', s_min, 255, set_s_min)
 cv2.createTrackbar('s_max', 'hist', s_max, 255, set_s_max)
 
 def plot_hist():
-    img = cv.imread("test/test2.png")
+    img = cv.imread(file_name)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     # can't swap s param
