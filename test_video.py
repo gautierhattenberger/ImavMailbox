@@ -19,9 +19,9 @@ else:
     print("input video number or image file missing")
     exit(1)
 
-mailbox_red = MailboxDetector([[[0, 173, 0],[9, 255, 255]],[[163, 173, 0],[179, 255, 255]]])
-mailbox_blue = MailboxDetector([[[109, 176, 0],[145, 241, 255]]])
-mailbox_yellow = MailboxDetector([[[21, 195, 0],[45, 255, 255]]])
+mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]])
+mailbox_blue = MailboxDetector([[109, 176, 0],[145, 241, 255]])
+mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]])
 
 while True:
     img = None
@@ -32,19 +32,19 @@ while True:
 
     res = mailbox_red.detect(img)
     if res is not None:
-        box = cv2.boxPoints(res)
+        box = cv2.cv.BoxPoints(res)
         ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
         cv2.drawContours(img, [ctr], -1, (0, 255, 0), 4)
 
     res = mailbox_blue.detect(img)
     if res is not None:
-        box = cv2.boxPoints(res)
+        box = cv2.cv.BoxPoints(res)
         ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
         cv2.drawContours(img, [ctr], -1, (0, 255, 0), 4)
 
     res = mailbox_yellow.detect(img)
     if res is not None:
-        box = cv2.boxPoints(res)
+        box = cv2.cv.BoxPoints(res)
         ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
         cv2.drawContours(img, [ctr], -1, (0, 255, 0), 4)
 

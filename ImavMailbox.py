@@ -15,14 +15,14 @@ class ImavMailbox:
         self.alt = 0 # in mm from AP
 
         # initial color thresholds
-        self.mailbox_red = MailboxDetector([[[0, 173, 0],[9, 255, 255]],[[163, 173, 0],[179, 255, 255]]])
-        self.mailbox_blue = MailboxDetector([[[109, 176, 0],[145, 241, 255]]])
-        self.mailbox_yellow = MailboxDetector([[[21, 195, 0],[45, 255, 255]]])
-        self.mailbox_orange = MailboxDetector([[[141, 61, 0],[163, 76, 255]]])
+        self.mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]]) # split box
+        self.mailbox_blue = MailboxDetector([[109, 176, 0],[145, 241, 255]])
+        self.mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]])
+        self.mailbox_orange = MailboxDetector([[141, 61, 0],[163, 76, 255]])
 
-        # Define square approximation parameters
-        self.width_height_ratio = 0.6
-        self.area_occupancy_ratio = 0.6
+        # cam params
+        self.focal = (770., 770.)
+        self.center = (320., 240.)
 
         self.save = None # save current image
 
@@ -38,7 +38,8 @@ class ImavMailbox:
             box = cv2.boxPoints(mark)
             ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
             cv2.drawContours(img, [ctr], -1, (0, 255, 0), 4)
-        outframe.sendCv(img)
+        #outframe.sendCv(img)
+        outframe.sendCv(self.mailbox_yellow.mask)
 
     def processImage(self, img):
         '''
@@ -82,8 +83,10 @@ class ImavMailbox:
         '''
         send message over serial link to AP
         '''
-        (x, y), (w, h), _ = pos
-        # TODO apply intrinsec matrix here to send result in image frame
+        (u, v), (w, h), _ = pos
+        # pos in "mm" in image frame
+        x = 1000. * (u - self.center[0]) / self.focal[0]
+        y = 1000. * (v - self.center[1]) / self.focal[1]
         jevois.sendSerial("N2 {} {:.2f} {:.2f} {:.2f} {:.2f}".format(mark, x, y, w, h))
 
     def parseSerial(self, cmd):
@@ -94,6 +97,30 @@ class ImavMailbox:
         elif len(str_list) == 2 and str_list[0] == "save":
             self.save = "/jevois/data/images/{}.png".format(str_list[1])
             return self.save
+        elif len(str_list) == 7 and str_list[0] == "hsv_red":
+            h_min = [int(str_list[1]), int(str_list[2]), int(str_list[3])]
+            h_max = [int(str_list[4]), int(str_list[5]), int(str_list[6])]
+            self.mailbox_red.set_hsv_th(h_min, h_max)
+            return "OK"
+        elif len(str_list) == 7 and str_list[0] == "hsv_blue":
+            h_min = [int(str_list[1]), int(str_list[2]), int(str_list[3])]
+            h_max = [int(str_list[4]), int(str_list[5]), int(str_list[6])]
+            self.mailbox_blue.set_hsv_th(h_min, h_max)
+            return "OK"
+        elif len(str_list) == 7 and str_list[0] == "hsv_yellow":
+            h_min = [int(str_list[1]), int(str_list[2]), int(str_list[3])]
+            h_max = [int(str_list[4]), int(str_list[5]), int(str_list[6])]
+            self.mailbox_yellow.set_hsv_th(h_min, h_max)
+            return "OK"
+        elif len(str_list) == 7 and str_list[0] == "hsv_orange":
+            h_min = [int(str_list[1]), int(str_list[2]), int(str_list[3])]
+            h_max = [int(str_list[4]), int(str_list[5]), int(str_list[6])]
+            self.mailbox_orange.set_hsv_th(h_min, h_max)
+            return "OK"
+        elif len(str_list) == 5 and str_list[0] == "calib":
+            self.focal = (float(str_list[1]), float(str_list[2]))
+            self.center = (float(str_list[3]), float(str_list[4]))
+            return "OK"
         return "ERR"
 
     def supportedCommands(self):
