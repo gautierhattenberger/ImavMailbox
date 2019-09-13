@@ -4,7 +4,7 @@ import numpy as np
 
 class MailboxDetector:
 
-    def __init__(self, hsv_th, aspect_ratio_th=0.8, area_th=0.7, size_th=(20,200)):
+    def __init__(self, hsv_th, aspect_ratio_th=0.8, area_th=0.7, size_th=(20,200), color="Unknown"):
         self.hsv_th = None
         self.set_hsv_th(hsv_th[0], hsv_th[1])
         self.aspect_ratio_th = aspect_ratio_th
@@ -12,6 +12,7 @@ class MailboxDetector:
         self.size_th = size_th
         self.kernel = np.ones((8,8),np.uint8) # create convolution
         self.mask = None
+        self.color = color # color name
 
     def detect(self, img):
 
@@ -27,7 +28,7 @@ class MailboxDetector:
                 mask += cv2.inRange(hsv, hsv_min, hsv_max)
 
         self.mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel) # opening
-        #cv2.imshow('mask',mask)
+        #cv2.imshow('mask '+self.color,mask)
         cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
         #self.draw_all(img.copy(),cnts)
         best_res = None
@@ -62,7 +63,7 @@ class MailboxDetector:
             box = cv2.boxPoints(cv2.minAreaRect(cnt))
             ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
             cv2.drawContours(img, [ctr], -1, (0, 255, 0), 4)
-        #cv2.imshow('contour',img)
+        #cv2.imshow('contour '+self.color,img)
 
     def set_hsv_th(self, th_min, th_max):
         if th_min[0] < th_max[0]: # h min < h max, normal case

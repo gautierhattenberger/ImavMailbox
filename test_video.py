@@ -19,9 +19,9 @@ else:
     print("input video number or image file missing")
     exit(1)
 
-mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]])
-mailbox_blue = MailboxDetector([[109, 176, 0],[145, 241, 255]])
-mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]])
+mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]], color="RED")
+mailbox_blue = MailboxDetector([[109, 176, 0],[145, 241, 255]], color="BLUE")
+mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]], color="YELLOW")
 
 while True:
     img = None

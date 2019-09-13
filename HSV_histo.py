@@ -99,8 +99,8 @@ def plot_hist():
     _s_max = max(s_min, s_max)
 
     # discard dark colors
-    dark = hsv[...,2] < 32
-    hsv[dark] = 0
+    #dark = hsv[...,2] < 32
+    #hsv[dark] = 0
     mask = None
     if h_min <= h_max:
         lower = np.array([h_min, _s_min, 0])
