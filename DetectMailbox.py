@@ -4,9 +4,10 @@ import numpy as np
 
 class MailboxDetector:
 
-    def __init__(self, hsv_th, aspect_ratio_th=0.8, area_th=0.7, size_th=(20,200), color="Unknown"):
+    def __init__(self, hsv_th, size, aspect_ratio_th=0.8, area_th=0.7, size_th=(10,300), color="Unknown"):
         self.hsv_th = None
         self.set_hsv_th(hsv_th[0], hsv_th[1])
+        self.size2 = size * size # real size in mm
         self.aspect_ratio_th = aspect_ratio_th
         self.area_th = area_th
         self.size_th = size_th
@@ -14,7 +15,7 @@ class MailboxDetector:
         self.mask = None
         self.color = color # color name
 
-    def detect(self, img):
+    def detect(self, img, size_factor=None):
 
         #blur = cv2.GaussianBlur(img,(5,5),0)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -40,9 +41,14 @@ class MailboxDetector:
             max_wh = max(w, h)
             if min_wh == 0 or max_wh == 0:
                 continue
-            if min_wh < self.size_th[0] or max_wh > self.size_th[1]:
-                #print("not correct size")
-                continue # too small or too big
+            area = w * h
+            score_area = area
+            if size_factor is not None:
+                score_area = 1. / max(1., abs(area - self.size2 * size_factor))
+            else:
+                if min_wh < self.size_th[0] or max_wh > self.size_th[1]:
+                    #print("not correct size")
+                    continue # too small or too big
             similarity = min_wh / max_wh
             if similarity < self.aspect_ratio_th:
                 #print("not square")
@@ -51,7 +57,7 @@ class MailboxDetector:
             if area_ratio < self.area_th:
                 #print("not good ratio")
                 continue # not enough full of color
-            score = area_ratio * similarity * (w*h)
+            score = area_ratio * similarity * size_factor
             #print(score,best_score)
             if score > best_score:
                 best_score = score

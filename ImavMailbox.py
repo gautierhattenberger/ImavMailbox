@@ -15,10 +15,10 @@ class ImavMailbox:
         self.alt = 0 # in mm from AP
 
         # initial color thresholds
-        self.mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]]) # split box
-        self.mailbox_blue = MailboxDetector([[109, 176, 0],[145, 241, 255]])
-        self.mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]])
-        self.mailbox_orange = MailboxDetector([[141, 61, 0],[163, 76, 255]])
+        self.mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]], 7500) # split box
+        self.mailbox_blue = MailboxDetector([[109, 176, 0],[145, 241, 255]], 1200)
+        self.mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]], 1500)
+        self.mailbox_orange = MailboxDetector([[141, 61, 0],[163, 76, 255]], 500)
 
         # cam params
         self.focal = (770., 770.)
@@ -53,26 +53,30 @@ class ImavMailbox:
 
         detect = {} # dict of detected objects
 
+        size_factor = None
+        if self.alt > 1000:
+            size_factor = self.focal[0] * self.focal[1] / (self.alt * self.alt)
+
         # red
-        ret = self.mailbox_red.detect(img)
+        ret = self.mailbox_red.detect(img, size_factor)
         if ret is not None:
             detect[MARK_RED] = ret
             self.send_message(MARK_RED, ret)
 
         # blue
-        ret = self.mailbox_blue.detect(img)
+        ret = self.mailbox_blue.detect(img, size_factor)
         if ret is not None:
             detect[MARK_BLUE] = ret
             self.send_message(MARK_BLUE, ret)
 
         # yellow
-        ret = self.mailbox_yellow.detect(img)
+        ret = self.mailbox_yellow.detect(img, size_factor)
         if ret is not None:
             detect[MARK_YELLOW] = ret
             self.send_message(MARK_YELLOW, ret)
 
         # orange (assuming only one in image)
-        ret = self.mailbox_orange.detect(img)
+        ret = self.mailbox_orange.detect(img, size_factor)
         if ret is not None:
             detect[MARK_ORANGE] = ret
             self.send_message(MARK_ORANGE, ret)
