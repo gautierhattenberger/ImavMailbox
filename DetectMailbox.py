@@ -57,7 +57,7 @@ class MailboxDetector:
             if area_ratio < self.area_th:
                 #print("not good ratio")
                 continue # not enough full of color
-            score = area_ratio * similarity * size_factor
+            score = area_ratio * similarity * score_area
             #print(score,best_score)
             if score > best_score:
                 best_score = score
