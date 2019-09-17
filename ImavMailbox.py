@@ -33,13 +33,12 @@ class ImavMailbox:
     def process(self, inframe, outframe):
         img = inframe.getCvBGR()
         detect = self.processImage(img)
-        #inframe.done() # release input image
         for mark in detect.values():
             box = cv2.boxPoints(mark)
             ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
             cv2.drawContours(img, [ctr], -1, (0, 255, 0), 4)
-        #outframe.sendCv(img)
-        outframe.sendCv(self.mailbox_yellow.mask)
+        outframe.sendCv(img)
+        #outframe.sendCv(self.mailbox_yellow.mask)
 
     def processImage(self, img):
         '''
@@ -70,16 +69,16 @@ class ImavMailbox:
             self.send_message(MARK_BLUE, ret)
 
         # yellow
-        ret = self.mailbox_yellow.detect(img, size_factor)
-        if ret is not None:
-            detect[MARK_YELLOW] = ret
-            self.send_message(MARK_YELLOW, ret)
+        #ret = self.mailbox_yellow.detect(img, size_factor)
+        #if ret is not None:
+        #    detect[MARK_YELLOW] = ret
+        #    self.send_message(MARK_YELLOW, ret)
 
         # orange (assuming only one in image)
-        ret = self.mailbox_orange.detect(img, size_factor)
-        if ret is not None:
-            detect[MARK_ORANGE] = ret
-            self.send_message(MARK_ORANGE, ret)
+        #ret = self.mailbox_orange.detect(img, size_factor)
+        #if ret is not None:
+        #    detect[MARK_ORANGE] = ret
+        #    self.send_message(MARK_ORANGE, ret)
 
         return detect
 

@@ -41,14 +41,13 @@ class MailboxDetector:
             max_wh = max(w, h)
             if min_wh == 0 or max_wh == 0:
                 continue
+            if min_wh < self.size_th[0] or max_wh > self.size_th[1]:
+                #print("not correct size")
+                continue # too small or too big
             area = w * h
-            score_area = area
+            score_area = area # if no size factor, keep biggest one
             if size_factor is not None:
-                score_area = 1. / max(1., abs(area - self.size2 * size_factor))
-            else:
-                if min_wh < self.size_th[0] or max_wh > self.size_th[1]:
-                    #print("not correct size")
-                    continue # too small or too big
+                score_area = 1. / max(1., abs(area - self.size2 * size_factor)) # score according to expected size
             similarity = min_wh / max_wh
             if similarity < self.aspect_ratio_th:
                 #print("not square")
