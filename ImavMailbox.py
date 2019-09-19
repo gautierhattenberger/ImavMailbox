@@ -15,7 +15,7 @@ class ImavMailbox:
         self.alt = 0 # in mm from AP
 
         # initial color thresholds
-        self.mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]], 7500) # split box
+        self.mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]], 750) # split box
         self.mailbox_blue = MailboxDetector([[109, 176, 0],[145, 241, 255]], 1200)
         self.mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]], 1500)
         self.mailbox_orange = MailboxDetector([[141, 61, 0],[163, 76, 255]], 500)

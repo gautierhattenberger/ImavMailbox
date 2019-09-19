@@ -130,6 +130,9 @@ def plot_hist():
     cv2.imshow('hist', vis)
     cv2.imshow('image', img_masked)
 
+    # HSV output
+    print("[[{}, {}, 0],[{}, {}, 255]] | {} {} 0 {} {} 255".format(h_min, min(s_min,s_max), h_max, max(s_min,s_max), h_min, min(s_min,s_max), h_max, max(s_min,s_max)))
+
 while True:
     if updated:
         plot_hist()
