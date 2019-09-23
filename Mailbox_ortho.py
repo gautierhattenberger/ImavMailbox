@@ -20,8 +20,49 @@ mailbox_blue = MailboxDetector([[103, 129, 0],[129, 190, 255]], 1200, color="BLU
 mailbox_yellow = MailboxDetector([[0, 0, 0],[179, 6, 255]], 1500, aspect_ratio_th=0.6, color="YELLOW") # for test image only
 mailbox_orange = MailboxDetector([[141, 61, 0],[163, 76, 255]], 500, color="ORANGE")
 
-def process_result(img, out, res, label):
+def get_geo_data(filename):
+    import os
+    if os.path.splitext(filename)[1] == '.tif':
+        try:
+            from osgeo import gdal
+            # Open tif file
+            ds = gdal.Open(filename)
+            # GDAL affine transform parameters, According to gdal documentation xoff/yoff are image left corner, a/e are pixel wight/height and b/d is rotation and is zero if image is north up. 
+            return ds.GetGeoTransform()
+        except:
+            print('failed loading gdal')
+            return None
+    else:
+        print('not a tif file')
+        return None
+
+def transform_utm_to_wgs84(easting, northing, zone=31):
+    try:
+        import osr
+        utm_coordinate_system = osr.SpatialReference()
+        utm_coordinate_system.SetWellKnownGeogCS("WGS84") # Set geographic coordinate system to handle lat/lon
+        is_northern = northing > 0    
+        utm_coordinate_system.SetUTM(zone, is_northern)
+        wgs84_coordinate_system = utm_coordinate_system.CloneGeogCS() # Clone ONLY the geographic coordinate system 
+        # create transform component
+        utm_to_wgs84_transform = osr.CoordinateTransformation(utm_coordinate_system, wgs84_coordinate_system) # (<from>, <to>)
+        return utm_to_wgs84_transform.TransformPoint(easting, northing, 0) # returns lon, lat, altitude
+    except:
+        return None
+
+def pixel2coord(x, y, geo):
+    """Returns global coordinates from pixel x, y coords"""
+    if geo is not None:
+        xoff, a, b, yoff, d, e = geo
+        xp = a * x + b * y + xoff
+        yp = d * x + e * y + yoff
+        return transform_utm_to_wgs84(xp, yp)
+    else:
+        return ""
+
+def process_result(img, out, res, label, geo=None):
     center = (int(res[0][0]), int(res[0][1]))
+    print('coord',pixel2coord(center[0], center[1], geo))
     cv2.circle(out, center, 50, (0, 255, 0), 5)
     cv2.putText(out, label, (center[0]+60, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), lineType=cv2.LINE_AA)
     box = boxPoints(res)
@@ -31,7 +72,7 @@ def process_result(img, out, res, label):
     img = cv2.bitwise_and(img,img,mask = cv2.bitwise_not(mask))
     return img, out
 
-def find_mailboxes(img, output=None, scale=DEFAULT_SCALE_FACTOR, res=DEFAULT_RESOLUTION):
+def find_mailboxes(img, output=None, scale=DEFAULT_SCALE_FACTOR, res=DEFAULT_RESOLUTION, geo=None):
     out = img.copy()
 
     scale_factor = pow(res / 1000., 2)
@@ -88,7 +129,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     img = cv2.imread(args.img)
-    find_mailboxes(img, args.output, args.scale, args.resolution)
+    geo = get_geo_data(args.img)
+    print(geo)
+    find_mailboxes(img, args.output, args.scale, args.resolution, geo)
 
     if not args.no_view and args.output is not None:
         subprocess.call([args.viewer, args.output])
