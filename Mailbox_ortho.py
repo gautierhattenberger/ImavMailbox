@@ -16,8 +16,8 @@ DEFAULT_RESOLUTION = 20 # pixels per meter
 
 mailbox_red = MailboxDetector([[163, 173, 0],[9, 255, 255]], 750, color="RED")
 mailbox_blue = MailboxDetector([[103, 129, 0],[129, 190, 255]], 1200, color="BLUE")
-#mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]], 1500, color="YELLOW")
-mailbox_yellow = MailboxDetector([[0, 0, 0],[179, 6, 255]], 1500, aspect_ratio_th=0.6, color="YELLOW") # for test image only
+mailbox_yellow = MailboxDetector([[21, 195, 0],[45, 255, 255]], 1500, color="YELLOW")
+#mailbox_yellow = MailboxDetector([[0, 0, 0],[179, 6, 255]], 1500, aspect_ratio_th=0.6, color="YELLOW") # for test image only
 mailbox_orange = MailboxDetector([[141, 61, 0],[163, 76, 255]], 500, color="ORANGE")
 
 def get_geo_data(filename):
@@ -58,13 +58,16 @@ def pixel2coord(x, y, geo):
         yp = d * x + e * y + yoff
         return transform_utm_to_wgs84(xp, yp)
     else:
-        return ""
+        return None
 
 def process_result(img, out, res, label, geo=None):
     center = (int(res[0][0]), int(res[0][1]))
-    print('coord',pixel2coord(center[0], center[1], geo))
     cv2.circle(out, center, 50, (0, 255, 0), 5)
     cv2.putText(out, label, (center[0]+60, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), lineType=cv2.LINE_AA)
+    coord = pixel2coord(center[0], center[1], geo)
+    if coord is not None:
+        # print lat lon if available
+        cv2.putText(out, '{:.7f} {:.7f}'.format(coord[1], coord[0]), (center[0]+60, center[1]+30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), lineType=cv2.LINE_AA)
     box = boxPoints(res)
     ctr = np.array(box).reshape((-1,1,2)).astype(np.int32)
     mask = np.zeros((img.shape[0], img.shape[1], 1), np.uint8)
@@ -79,27 +82,27 @@ def find_mailboxes(img, output=None, scale=DEFAULT_SCALE_FACTOR, res=DEFAULT_RES
 
     res = mailbox_red.detect(img, scale_factor)
     if res is not None:
-        img, out = process_result(img, out, res, "RED")
+        img, out = process_result(img, out, res, "RED", geo)
 
     res = mailbox_blue.detect(img, scale_factor)
     if res is not None:
-        img, out = process_result(img, out, res, "BLUE")
+        img, out = process_result(img, out, res, "BLUE", geo)
 
     res = mailbox_yellow.detect(img, scale_factor)
     if res is not None:
-        img, out = process_result(img, out, res, "YELLOW")
+        img, out = process_result(img, out, res, "YELLOW", geo)
 
     res = mailbox_orange.detect(img, scale_factor)
     if res is not None:
-        img, out = process_result(img, out, res, "ORANGE_1")
+        img, out = process_result(img, out, res, "ORANGE_1", geo)
 
     res = mailbox_orange.detect(img, scale_factor)
     if res is not None:
-        img, out = process_result(img, out, res, "ORANGE_2")
+        img, out = process_result(img, out, res, "ORANGE_2", geo)
 
     res = mailbox_orange.detect(img, scale_factor)
     if res is not None:
-        img, out = process_result(img, out, res, "ORANGE_3")
+        img, out = process_result(img, out, res, "ORANGE_3", geo)
 
     if output is None:
         w, h, _ = img.shape
@@ -130,7 +133,6 @@ if __name__ == '__main__':
 
     img = cv2.imread(args.img)
     geo = get_geo_data(args.img)
-    print(geo)
     find_mailboxes(img, args.output, args.scale, args.resolution, geo)
 
     if not args.no_view and args.output is not None:
