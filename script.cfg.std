@@ -15,5 +15,8 @@ setpar serlog None
 setpar serout Hard
 
 # Custom HSV ranges here
+hsv_red 167 180 0 10 255 255
+hsv_blue 97 125 0 142 228 255
 hsv_yellow 13 131 0 38 202 255
 calib 658.4892 659.2282 320.7412 248.8963
+
