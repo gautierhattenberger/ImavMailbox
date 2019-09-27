@@ -134,7 +134,7 @@ class ImavMailbox:
             self.center = (float(str_list[3]), float(str_list[4]))
             return "OK"
         elif str_len == 9 and str_list[0] == "calib_fisheye":
-            K = np.array([[float(str_list[1]), 0., float(str_list[3])], [0., float(str_list[2]), float(str_list[4])]])
+            K = np.array([[float(str_list[1]), 0., float(str_list[3])], [0., float(str_list[2]), float(str_list[4])], [0., 0., 1.]])
             D = np.array([[float(str_list[5])], [float(str_list[6])], [float(str_list[7])], [float(str_list[8])]])
             self.calib_fisheye = (K, D)
             return "OK"
